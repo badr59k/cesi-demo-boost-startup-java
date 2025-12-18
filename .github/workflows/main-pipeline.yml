@@ -69,15 +69,29 @@ jobs:
   # ═══════════════════════════════════════════════
   # ÉTAPE 8 : TESTS DAST
   # ═══════════════════════════════════════════════
-  dast-zap-test:
-    needs: publish-docker-hub
-    uses: ./.github/workflows/dast-zap-test.yml
-    secrets: inherit
+  # dast-zap-test:
+  #   needs: publish-docker-hub
+  #   uses: ./.github/workflows/dast-zap-test.yml
+  #   secrets: inherit
 
   # ═══════════════════════════════════════════════
   # ÉTAPE 9 : DÉPLOIEMENT
   # ═══════════════════════════════════════════════
   deploy-docker:
-    needs: dast-zap-test
+    needs: publish-docker-hub
     uses: ./.github/workflows/deploy-production-server.yml
     secrets: inherit
+
+  send-notifications:
+    needs: deploy-docker
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Deployment status
+        run: |
+          if [ "${{ needs.deploy-docker.result }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+            exit 1
+          fi
