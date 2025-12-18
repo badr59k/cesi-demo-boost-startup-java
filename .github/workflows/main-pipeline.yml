@@ -34,3 +34,11 @@ jobs:
   secret-scanning:
     needs: build-and-test
     uses: ./.github/workflows/secret-scanning.yml
+
+  # ═══════════════════════════════════════════════
+  # ÉTAPE 4 : ANALYSE DES DÉPENDANCES (SCA)
+  # ═══════════════════════════════════════════════
+  sca-dependency-scan:
+    needs: build-and-test
+    uses: ./.github/workflows/sca-dependency-scan.yml
+    secrets: inherit
