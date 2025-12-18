@@ -27,3 +27,10 @@ jobs:
   code-quality-sast:
     needs: build-and-test
     uses: ./.github/workflows/code-quality-sast.yml
+
+  # ═══════════════════════════════════════════════
+  # ÉTAPE 3 : DÉTECTION DE SECRETS
+  # ═══════════════════════════════════════════════
+  secret-scanning:
+    needs: build-and-test
+    uses: ./.github/workflows/secret-scanning.yml
