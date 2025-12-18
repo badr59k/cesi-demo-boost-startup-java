@@ -1,0 +1,42 @@
+on:
+  workflow_call:
+    secrets:
+      DEPLOY_SERVER:
+        required: true
+      DEPLOY_SSH_USER:
+        required: true
+      DEPLOY_SSH_PRIVATE_KEY:
+        required: true
+      DEPLOY_SSH_PORT:
+        required: false
+      DOCKERHUB_USERNAME:
+        required: true
+      DEPLOY_APPLI_PORT:
+        required: true
+      DEPLOY_APPLI_NAME:
+        required: true
+      MONGODB_COLLECTION_NAME:
+        required: false
+
+jobs:
+  deploy-docker:
+    name: Deploy to server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_SERVER }}
+          username: ${{ secrets.DEPLOY_SSH_USER }}
+          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEPLOY_SSH_PORT || 22 }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DEPLOY_APPLI_NAME }}:latest
+            docker stop ${{ secrets.DEPLOY_APPLI_NAME }} || true
+            docker rm ${{ secrets.DEPLOY_APPLI_NAME }} || true
+            docker run -d --name ${{ secrets.DEPLOY_APPLI_NAME }} \
+              -p ${{ secrets.DEPLOY_APPLI_PORT }}:8080 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DEPLOY_APPLI_NAME }}:latest
+            sleep 10
+            curl -f http://localhost:${{ secrets.DEPLOY_APPLI_PORT }} || exit 1
+            docker image prune -af --filter "until=24h"
